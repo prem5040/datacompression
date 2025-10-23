@@ -1,0 +1,3 @@
+Algorithm,Original Size (bytes),Compressed Size (bytes),Original Size (MB),Compressed Size (MB),Compression Ratio,Space Saved,Compression Time (s),Decompression Time (s),Integrity Check,Output File
+LZMA,1140321,974672,1.0874948501586914,0.9295196533203125,0.8547347632815672,0.14526523671843283,0.2770659923553467,0.08920764923095703,PASS,milestone1_compressed.lzma
+Zstandard,1140321,971188,1.0874948501586914,0.9261970520019531,0.85167948323323,0.14832051676677005,0.24487543106079102,0.0006570816040039062,PASS,milestone1_compressed.zst
