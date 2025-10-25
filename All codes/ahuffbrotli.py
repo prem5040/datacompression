@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Algorithms: Adaptive Huffman, DEFLATE, Brotli
-File Types: Large Text, Repeating Phrases, Random Characters
-"""
 
 import sys
 import os
@@ -26,11 +21,6 @@ except ImportError:
 file_name_list = []
 
 class AdaptiveHuffman:
-    """
-    Adaptive Huffman Coding Implementation
-    Dynamically builds Huffman tree based on character frequencies
-    """
-    
     def __init__(self):
         self.NYT = 512 
     
@@ -38,50 +28,39 @@ class AdaptiveHuffman:
         """Compress data using Adaptive Huffman coding"""
         if isinstance(data, str):
             data = data.encode('utf-8')
-        
-        # Calculate frequency of each byte
         freq = defaultdict(int)
         for byte in data:
             freq[byte] += 1
         
-        # Build Huffman tree
         tree = self._build_huffman_tree(freq)
         codes = self._generate_codes(tree)
-        
-        # Encode data
+
         encoded_bits = []
         for byte in data:
             encoded_bits.append(codes[byte])
         
-        # Pack bits into bytes
         bit_string = ''.join(encoded_bits)
         compressed = self._pack_bits(bit_string)
         
-        # Create header with frequency table
         header = self._create_header(freq)
         
         return header + compressed
     
     def decompress(self, compressed_data):
-        """Decompress Adaptive Huffman encoded data"""
         try:
-            # Extract header
             header_size = struct.unpack('I', compressed_data[:4])[0]
             header_data = compressed_data[4:4+header_size]
             compressed = compressed_data[4+header_size:]
             
-            # Rebuild frequency table
             freq = self._parse_header(header_data)
-            
-            # Rebuild tree and codes
+
             tree = self._build_huffman_tree(freq)
             codes = self._generate_codes(tree)
             reverse_codes = {v: k for k, v in codes.items()}
             
-            # Unpack bits
+      
             bit_string = self._unpack_bits(compressed)
-            
-            # Decode
+
             decoded = []
             current = ""
             for bit in bit_string:
@@ -96,7 +75,6 @@ class AdaptiveHuffman:
             return compressed_data  # Return original if decompression fails
     
     def _build_huffman_tree(self, freq):
-        """Build Huffman tree from character frequencies"""
         import heapq
         
         # Create heap of (frequency, [symbol, code])
@@ -112,21 +90,17 @@ class AdaptiveHuffman:
             for pair in lo[1:]:
                 pair[1] = '0' + pair[1]
             
-            # Assign 1 to right branch
             for pair in hi[1:]:
                 pair[1] = '1' + pair[1]
             
-            # Combine and push back
             heapq.heappush(heap, [lo[0] + hi[0]] + lo[1:] + hi[1:])
         
         return sorted(heapq.heappop(heap)[1:], key=lambda p: (len(p[-1]), p))
     
     def _generate_codes(self, tree):
-        """Generate code dictionary from Huffman tree"""
         return {symbol: code for symbol, code in tree}
     
     def _pack_bits(self, bit_string):
-        """Pack bit string into bytes"""
         # Pad to multiple of 8
         padding = (8 - len(bit_string) % 8) % 8
         bit_string += '0' * padding
@@ -136,15 +110,12 @@ class AdaptiveHuffman:
             byte = bit_string[i:i+8]
             packed.append(int(byte, 2))
         
-        # Store padding length in first byte
         return bytes([padding]) + bytes(packed)
     
     def _unpack_bits(self, packed_data):
-        """Unpack bytes into bit string"""
         padding = packed_data[0]
         bit_string = ''.join(format(byte, '08b') for byte in packed_data[1:])
-        
-        # Remove padding
+
         if padding > 0:
             bit_string = bit_string[:-padding]
         
@@ -154,17 +125,14 @@ class AdaptiveHuffman:
         """Create header containing frequency table"""
         header = bytearray()
         
-        # Store each symbol and its frequency
         for symbol, count in freq.items():
             header.append(symbol)
             header.extend(struct.pack('I', count))
         
         header_data = bytes(header)
-        # Prepend header size
         return struct.pack('I', len(header_data)) + header_data
     
     def _parse_header(self, header_data):
-        """Parse frequency table from header"""
         freq = {}
         i = 0
         
@@ -176,19 +144,13 @@ class AdaptiveHuffman:
         
         return freq
 
-# ============================================================================
-# FILE GENERATION
-# ============================================================================
-
 def create_sample_files():
-    """Creates three sample text files with different compression characteristics"""
     global file_name_list
     
     print("\n" + "="*70)
     print("CREATING TEST FILES")
     print("="*70)
     
-    # File 1: Large Text (Moderate redundancy - natural language)
     large_text_file = "large_text.txt"
     file_name_list.append(large_text_file)
     print(f"Creating: {large_text_file}")
@@ -196,7 +158,6 @@ def create_sample_files():
         file.write("A fallstreak hole (also known as a cavum, hole punch cloud, punch hole cloud, skypunch, cloud canal or cloud hole) is a large gap, usually circular or elliptical, that can appear in cirrocumulus or altocumulus clouds. The holes are caused by supercooled water in the clouds suddenly evaporating or freezing, and may be triggered by passing aircraft. Such clouds are not unique to any one geographic area and have been photographed from many places.\nBecause of their rarity and unusual appearance, fallstreak holes have been mistaken for or attributed to unidentified flying objects.\nSuch holes are formed when the water temperature in the clouds is below freezing, but the water, in a supercooled state, has not frozen yet due to the lack of ice nucleation. When ice crystals do form, a domino effect is set off due to the Wegener-Bergeron-Findeisen process, causing the water droplets around the crystals to evaporate; this leaves a large, often circular, hole in the cloud. It is thought that the introduction of large numbers of tiny ice crystals into the cloud layer sets off this domino effect of fusion which creates the hole.\nThe ice crystals can be formed by passing aircraft, which often have a large reduction in pressure behind the wing-tip or propeller-tips. This cools the air very quickly, and can produce a ribbon of ice crystals trailing in the aircraft's wake. These ice crystals find themselves surrounded by droplets, and grow quickly by the Bergeron process, causing the droplets to evaporate and creating a hole with brush-like streaks of ice crystals below it. An early satellite documentation of elongated fallstreak holes over the Florida Panhandle that likely were induced by passing aircraft appeared in Corfidi and Brandli (1986). Fallstreak holes are more routinely seen by the higher resolution satellites of today (e.g., see fourth example image in this article).")
     print(f"  ✓ Size: {os.path.getsize(large_text_file)} bytes")
     
-    # File 2: Repeating Phrase (High redundancy - compresses very well)
     phrase_text_file = "phrase.txt"
     file_name_list.append(phrase_text_file)
     print(f"Creating: {phrase_text_file}")
@@ -205,7 +166,6 @@ def create_sample_files():
         file.write(phrase * 40)
     print(f"  ✓ Size: {os.path.getsize(phrase_text_file)} bytes")
     
-    # File 3: Random Characters (Low/No redundancy - hard to compress)
     random_text_file = "random.txt"
     file_name_list.append(random_text_file)
     print(f"Creating: {random_text_file}")
@@ -215,10 +175,6 @@ def create_sample_files():
     
     print("✓ All test files created successfully!\n")
     return [large_text_file, phrase_text_file, random_text_file]
-
-# ============================================================================
-# COMPRESSION FUNCTIONS
-# ============================================================================
 
 def compress_adaptive_huffman(test_file, compressed_file):
     """Compress file using Adaptive Huffman Coding"""
@@ -246,7 +202,6 @@ def compress_adaptive_huffman(test_file, compressed_file):
         return None, False
 
 def compress_deflate(test_file, compressed_file, level=9):
-    """Compress file using DEFLATE (zlib)"""
     start_time = time.time()
     
     try:
@@ -260,7 +215,7 @@ def compress_deflate(test_file, compressed_file, level=9):
         
         compression_time = time.time() - start_time
         
-        # Verify decompression
+
         decompressed = zlib.decompress(compressed_data)
         integrity = (data == decompressed)
         
@@ -296,12 +251,7 @@ def compress_brotli(test_file, compressed_file, quality=11):
         print(f"  ✗ Error during Brotli compression: {e}")
         return None, False
 
-# ============================================================================
-# BENCHMARKING
-# ============================================================================
-
 def run_benchmark(input_files):
-    """Run compression benchmarks on all files"""
     results = []
     
     print("="*70)
@@ -316,7 +266,6 @@ def run_benchmark(input_files):
         original_size = os.path.getsize(test_file)
         print(f"│ Original Size: {original_size:,} bytes\n│")
         
-        # Adaptive Huffman Compression
         compressed_huff = os.path.splitext(test_file)[0] + "_adaptive_huffman.huff"
         file_name_list.append(compressed_huff)
         huff_time, huff_integrity = compress_adaptive_huffman(test_file, compressed_huff)
@@ -372,7 +321,6 @@ def run_benchmark(input_files):
                 'integrity': deflate_integrity
             })
         
-        # Brotli Compression
         if BROTLI_AVAILABLE:
             compressed_brotli = os.path.splitext(test_file)[0] + "_brotli.br"
             file_name_list.append(compressed_brotli)
@@ -404,11 +352,7 @@ def run_benchmark(input_files):
         print(f"{'─'*70}")
     
     return results
-
-# ============================================================================
-# VISUALIZATION
-# ============================================================================
-
+    
 def visualize_benchmarks(results):
     """Create comprehensive visualization of benchmark results"""
     df = pd.DataFrame(results)
@@ -488,8 +432,7 @@ def visualize_benchmarks(results):
     plt.savefig('03_compression_time.jpg', dpi=300, bbox_inches='tight')
     plt.close(fig3)
     print("  ✓ Saved: 03_compression_time.jpg")
-    
-    # Plot 4: Performance by File Type
+
     fig4, axes = plt.subplots(1, 3, figsize=(18, 5))
     
     for idx, file in enumerate(files):
@@ -535,25 +478,19 @@ def visualize_benchmarks(results):
     fig5.tight_layout()
     plt.savefig('05_efficiency_score.jpg', dpi=300, bbox_inches='tight')
     plt.close(fig5)
-    print("  ✓ Saved: 05_efficiency_score.jpg")
+    print("Saved: 05_efficiency_score.jpg")
     
     # Save CSV
     csv_file = 'compression_benchmark_results.csv'
     df.to_csv(csv_file, index=False)
-    print(f"  ✓ Saved: {csv_file}")
-    
-    # Print summary
-    print("\n" + "="*70)
+    print(f"Saved: {csv_file}")
+
     print("BENCHMARK RESULTS SUMMARY")
-    print("="*70)
     print(df[['file', 'algorithm', 'compressed_size', 'ratio', 'space_saved', 'time', 'integrity']].to_string(index=False))
 
 
 def cleanup_files():
-    print("\n" + "="*70)
     print("CLEANING UP FILES")
-    print("="*70)
-    
     for file_name in file_name_list:
         try:
             if os.path.exists(file_name):
