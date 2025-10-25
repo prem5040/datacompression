@@ -5,11 +5,6 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-# --- 1. Installation Check/Guide (For terminal execution) ---
-# NOTE: The pip install command from the original prompt is now a setup instruction.
-# To ensure the necessary library is installed, you would run:
-# pip install dahuffman
-
 try:
     from dahuffman import HuffmanCodec
 except ImportError:
@@ -17,13 +12,9 @@ except ImportError:
     print("Please install it using: pip install dahuffman")
     sys.exit(1)
 
-# List to keep track of created files for cleanup
-file_name_list = []
 
-# --- 2. File Generation Functions ---
 
 def create_sample_files():
-    """Creates the three sample text files with different characteristics."""
     
     global file_name_list
 
@@ -34,16 +25,13 @@ def create_sample_files():
     with open(large_text_file, "w") as file:
         file.write("A fallstreak hole (also known as a cavum, hole punch cloud, punch hole cloud, skypunch, cloud canal or cloud hole) is a large gap, usually circular or elliptical, that can appear in cirrocumulus or altocumulus clouds. The holes are caused by supercooled water in the clouds suddenly evaporating or freezing, and may be triggered by passing aircraft. Such clouds are not unique to any one geographic area and have been photographed from many places.\nBecause of their rarity and unusual appearance, fallstreak holes have been mistaken for or attributed to unidentified flying objects.\nSuch holes are formed when the water temperature in the clouds is below freezing, but the water, in a supercooled state, has not frozen yet due to the lack of ice nucleation. When ice crystals do form, a domino effect is set off due to the Wegener-Bergeron-Findeisen process, causing the water droplets around the crystals to evaporate; this leaves a large, often circular, hole in the cloud. It is thought that the introduction of large numbers of tiny ice crystals into the cloud layer sets off this domino effect of fusion which creates the hole.\nThe ice crystals can be formed by passing aircraft, which often have a large reduction in pressure behind the wing-tip or propeller-tips. This cools the air very quickly, and can produce a ribbon of ice crystals trailing in the aircraft's wake. These ice crystals find themselves surrounded by droplets, and grow quickly by the Bergeron process, causing the droplets to evaporate and creating a hole with brush-like streaks of ice crystals below it. An early satellite documentation of elongated fallstreak holes over the Florida Panhandle that likely were induced by passing aircraft appeared in Corfidi and Brandli (1986). Fallstreak holes are more routinely seen by the higher resolution satellites of today (e.g., see fourth example image in this article).")
 
-    # File 2: Repeating Phrase (High redundancy)
     phrase_text_file = "phrase.txt"
     file_name_list.append(phrase_text_file)
     print(f"Creating sample file: {phrase_text_file}")
     with open(phrase_text_file, "w") as file:
-        # A phrase repeated 40 times (approx 4,320 characters)
         phrase = "Crazy? I was crazy once, they locked me in a room, a rubber room, a rubber room filled with rats and rats make me crazy."
         file.write(phrase * 40)
 
-    # File 3: Randomized Characters (Low/No redundancy)
     random_text_file = "random.txt"
     file_name_list.append(random_text_file)
     print(f"Creating sample file: {random_text_file}")
@@ -52,20 +40,17 @@ def create_sample_files():
     
     return [large_text_file, phrase_text_file, random_text_file]
 
-# --- 3. Compression Implementations ---
 
 def compress_huffman(test_file, compressed_file):
-    """Compresses a file using dahuffman (Huffman Coding)."""
     start_time = time.time()
     try:
         with open(test_file, "r") as file:
             data = file.read()
         
-        # Build Huffman tree from data frequency
         codec = HuffmanCodec.from_data(data)
         encoded = codec.encode(data)
         
-        # Save the encoded data
+
         with open(compressed_file, "wb") as file:
             # Note: dahuffman automatically prepends the code table to the encoded data
             file.write(encoded)
@@ -78,7 +63,6 @@ def compress_huffman(test_file, compressed_file):
         return None, None
 
 def compress_zlib(test_file, compressed_file, level=9):
-    """Compresses a file using zlib (DEFLATE algorithm)."""
     start_time = time.time()
     try:
         with open(test_file, 'rb') as file:
@@ -97,10 +81,8 @@ def compress_zlib(test_file, compressed_file, level=9):
         print(f"An error occurred during DEFLATE compression of '{test_file}': {e}")
         return None
 
-# --- 4. Benchmarking and Reporting Function ---
 
 def run_benchmark(input_files):
-    """Runs the compression algorithms on the files and collects metrics."""
     results = []
 
     for test_file in input_files:
@@ -111,27 +93,23 @@ def run_benchmark(input_files):
         original_size = os.path.getsize(test_file)
         print(f"Original Size: {original_size} bytes")
 
-        # --- Huffman Compression ---
         compressed_huff = f"{os.path.splitext(test_file)[0]}_huff.huff"
         file_name_list.append(compressed_huff)
         
         huff_time, _ = compress_huffman(test_file, compressed_huff)
         compressed_size_huff = os.path.getsize(compressed_huff)
         
-        # --- DEFLATE (zlib) Compression ---
         compressed_zlib = f"{os.path.splitext(test_file)[0]}_zlib.zlib"
         file_name_list.append(compressed_zlib)
         
         zlib_time = compress_zlib(test_file, compressed_zlib, level=9)
         compressed_size_zlib = os.path.getsize(compressed_zlib)
 
-        # Calculate metrics
         huff_ratio = compressed_size_huff / original_size
         zlib_ratio = compressed_size_zlib / original_size
         huff_saved = 1 - huff_ratio
         zlib_saved = 1 - zlib_ratio
 
-        # Print results
         print("\n| **Huffman Coding Results**")
         print(f"| Compressed Size: {compressed_size_huff} bytes")
         print(f"| Compression Ratio: {huff_ratio:.2%}")
@@ -146,7 +124,6 @@ def run_benchmark(input_files):
         print("\n" + "=" * 50)
 
 
-        # Store data for visualization
         results.append({
             'file': test_file,
             'original_size': original_size,
@@ -158,7 +135,6 @@ def run_benchmark(input_files):
 
     return results
 
-# --- 5. Visualization Function ---
 def visualize_benchmarks(results):
     """Creates comparison plots for compression ratio and speed and saves them as JPG files."""
     
@@ -177,9 +153,6 @@ def visualize_benchmarks(results):
 
     print("\n[INFO] Generating and saving visualization graphs...")
 
-    # ----------------------------------------------------
-    # --- Plot 1: Compression Ratio Comparison ---
-    # ----------------------------------------------------
     fig1, ax1 = plt.subplots(figsize=(10, 6))
     ax1.bar(x - width/2, huff_ratios, width, label='Huffman Coding', color='skyblue')
     ax1.bar(x + width/2, zlib_ratios, width, label='DEFLATE (zlib)', color='salmon')
@@ -198,11 +171,7 @@ def visualize_benchmarks(results):
     plt.close(fig1) # Close the figure to free memory
     print(f"Saved: {ratio_filename}")
     
-    # ----------------------------------------------------
-    # --- Plot 2: Compression Speed Comparison ---
-    # ----------------------------------------------------
     fig2, ax2 = plt.subplots(figsize=(10, 6))
-    # Convert time to milliseconds (multiply by 1000) for better readability
     ax2.bar(x - width/2, huff_times * 1000, width, label='Huffman Coding', color='lightgreen')
     ax2.bar(x + width/2, zlib_times * 1000, width, label='DEFLATE (zlib)', color='gold')
 
@@ -219,10 +188,8 @@ def visualize_benchmarks(results):
     plt.close(fig2) # Close the figure to free memory
     print(f"Saved: {speed_filename}")
 
-# --- 6. Cleanup Function ---
 
 def cleanup_files():
-    """Removes all generated files."""
     print("\n" + "=" * 50)
     print("Cleaning up generated files...")
     for file_name in file_name_list:
@@ -237,8 +204,6 @@ def cleanup_files():
                  # This happens if the file was never created, which is fine
                  pass
     print("Cleanup complete.")
-
-# --- 7. Main Execution Block ---
 
 if __name__ == "__main__":
     print("--- Data Compression Benchmarking Tool ---")
