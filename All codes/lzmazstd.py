@@ -23,24 +23,17 @@ except ImportError:
     print("Install with: pip install zstandard")
     ZSTD_AVAILABLE = False
 
-# List to keep track of created files for cleanup
 file_name_list = []
 all_results = []
-
-# --- 1. File Generation Functions ---
-
 def create_sample_files():
-    """Creates the three sample text files with different characteristics."""
     global file_name_list
 
-    # File 1: Large Text (Moderate redundancy)
     large_text_file = "large_text.txt"
     file_name_list.append(large_text_file)
     print(f"Creating sample file: {large_text_file}")
     with open(large_text_file, "w") as file:
         file.write("A fallstreak hole (also known as a cavum, hole punch cloud, punch hole cloud, skypunch, cloud canal or cloud hole) is a large gap, usually circular or elliptical, that can appear in cirrocumulus or altocumulus clouds. The holes are caused by supercooled water in the clouds suddenly evaporating or freezing, and may be triggered by passing aircraft. Such clouds are not unique to any one geographic area and have been photographed from many places.\nBecause of their rarity and unusual appearance, fallstreak holes have been mistaken for or attributed to unidentified flying objects.\nSuch holes are formed when the water temperature in the clouds is below freezing, but the water, in a supercooled state, has not frozen yet due to the lack of ice nucleation. When ice crystals do form, a domino effect is set off due to the Wegener-Bergeron-Findeisen process, causing the water droplets around the crystals to evaporate; this leaves a large, often circular, hole in the cloud. It is thought that the introduction of large numbers of tiny ice crystals into the cloud layer sets off this domino effect of fusion which creates the hole.\nThe ice crystals can be formed by passing aircraft, which often have a large reduction in pressure behind the wing-tip or propeller-tips. This cools the air very quickly, and can produce a ribbon of ice crystals trailing in the aircraft's wake. These ice crystals find themselves surrounded by droplets, and grow quickly by the Bergeron process, causing the droplets to evaporate and creating a hole with brush-like streaks of ice crystals below it. An early satellite documentation of elongated fallstreak holes over the Florida Panhandle that likely were induced by passing aircraft appeared in Corfidi and Brandli (1986). Fallstreak holes are more routinely seen by the higher resolution satellites of today (e.g., see fourth example image in this article).")
 
-    # File 2: Repeating Phrase (High redundancy)
     phrase_text_file = "phrase.txt"
     file_name_list.append(phrase_text_file)
     print(f"Creating sample file: {phrase_text_file}")
@@ -48,7 +41,6 @@ def create_sample_files():
         phrase = "Crazy? I was crazy once, they locked me in a room, a rubber room, a rubber room filled with rats and rats make me crazy."
         file.write(phrase * 40)
 
-    # File 3: Randomized Characters (Low/No redundancy)
     random_text_file = "random.txt"
     file_name_list.append(random_text_file)
     print(f"Creating sample file: {random_text_file}")
@@ -57,10 +49,8 @@ def create_sample_files():
     
     return [large_text_file, phrase_text_file, random_text_file]
 
-# --- 2. Compression Functions ---
 
 def compress_huffman(test_file, compressed_file):
-    """Compresses a file using Huffman Coding."""
     if not HUFFMAN_AVAILABLE:
         return None, None
     
@@ -118,7 +108,6 @@ def compress_lzma(test_file, compressed_file, preset=9):
         return None
 
 def compress_zstandard(test_file, compressed_file, level=22):
-    """Compresses a file using Zstandard."""
     if not ZSTD_AVAILABLE:
         return None
     
@@ -139,8 +128,6 @@ def compress_zstandard(test_file, compressed_file, level=22):
         print(f"Error during Zstandard compression: {e}")
         return None
 
-# --- 3. Benchmarking Function ---
-
 def run_benchmark(input_files):
     """Runs all compression algorithms on the files."""
     results = []
@@ -153,7 +140,6 @@ def run_benchmark(input_files):
         original_size = os.path.getsize(test_file)
         print("Original Size: " + str(original_size) + " bytes\n")
 
-        # --- Huffman Compression ---
         if HUFFMAN_AVAILABLE:
             compressed_huff = os.path.splitext(test_file)[0] + "_huff.huff"
             file_name_list.append(compressed_huff)
@@ -173,7 +159,6 @@ def run_benchmark(input_files):
                 'time': huff_time
             })
 
-        # --- DEFLATE Compression ---
         compressed_deflate = os.path.splitext(test_file)[0] + "_deflate.zlib"
         file_name_list.append(compressed_deflate)
         deflate_time = compress_deflate(test_file, compressed_deflate)
@@ -235,16 +220,14 @@ def run_benchmark(input_files):
 # --- 4. Visualization Functions ---
 
 def visualize_benchmarks(results):
-    """Creates comprehensive comparison plots and saves as JPG."""
     df = pd.DataFrame(results)
     
     # Get unique files
     files = sorted(df['file'].unique())
     algorithms = sorted(df['algorithm'].unique())
     
-    print("\n[INFO] Generating and saving visualization graphs...")
+    print("\nGenerating and saving visualization graphs...")
 
-    # --- Plot 1: Compression Ratio by File ---
     fig1, ax1 = plt.subplots(figsize=(12, 7))
     x = np.arange(len(files))
     width = 0.2
@@ -273,7 +256,6 @@ def visualize_benchmarks(results):
     plt.close(fig1)
     print("Saved: 01_compression_ratio_all.jpg")
 
-    # --- Plot 2: Space Saved by Algorithm ---
     fig2, ax2 = plt.subplots(figsize=(12, 7))
     
     for i, algo in enumerate(algorithms):
@@ -388,10 +370,7 @@ def visualize_benchmarks(results):
     print("="*80)
     print(df.to_string(index=False))
 
-# --- 5. Cleanup Function ---
-
 def cleanup_files():
-    """Removes all generated files (except visualizations)."""
     print("\n" + "="*60)
     print("Cleaning up generated files...")
     for file_name in file_name_list:
@@ -401,8 +380,6 @@ def cleanup_files():
         except OSError as e:
             if os.path.exists(file_name):
                 print("Error deleting " + file_name + ": " + str(e))
-
-# --- 6. Main Execution ---
 
 if __name__ == "__main__":
     print("\n" + "="*60)
