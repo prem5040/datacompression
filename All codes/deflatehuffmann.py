@@ -1,3 +1,5 @@
+#This file was for Milstone 1
+#For Milestone2, lzmastd.py and ahuffbrotli.py is used
 import sys
 import os
 import zlib
@@ -18,7 +20,6 @@ def create_sample_files():
     
     global file_name_list
 
-    # File 1: Large Text (Moderate redundancy)
     large_text_file = "large_text.txt"
     file_name_list.append(large_text_file)
     print(f"Creating sample file: {large_text_file}")
@@ -52,7 +53,6 @@ def compress_huffman(test_file, compressed_file):
         
 
         with open(compressed_file, "wb") as file:
-            # Note: dahuffman automatically prepends the code table to the encoded data
             file.write(encoded)
             
         compression_time = time.time() - start_time
@@ -67,8 +67,6 @@ def compress_zlib(test_file, compressed_file, level=9):
     try:
         with open(test_file, 'rb') as file:
             data = file.read()
-            
-        # Compress using DEFLATE (zlib.compress)
         compressed_data = zlib.compress(data, level=level)
         
         with open(compressed_file, "wb") as file:
@@ -136,15 +134,11 @@ def run_benchmark(input_files):
     return results
 
 def visualize_benchmarks(results):
-    """Creates comparison plots for compression ratio and speed and saves them as JPG files."""
-    
     file_names = [r['file'].replace(".txt", "") for r in results]
-    
-    # Data for Size/Ratio
     huff_ratios = np.array([r['huff_size'] / r['original_size'] for r in results])
     zlib_ratios = np.array([r['zlib_size'] / r['original_size'] for r in results])
     
-    # Data for Speed
+
     huff_times = np.array([r['huff_time'] for r in results])
     zlib_times = np.array([r['zlib_time'] for r in results])
 
@@ -197,7 +191,6 @@ def cleanup_files():
             os.remove(file_name)
             print(f"Deleted: {file_name}")
         except OSError as e:
-            # Check if file exists before reporting an error
             if os.path.exists(file_name):
                  print(f"Error deleting file {file_name}: {e}")
             else:
